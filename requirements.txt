@@ -1,0 +1,6 @@
+streamlit==1.45.1
+chromadb
+sentence-transformers
+google-generativeai
+python-dotenv
+pypdf
