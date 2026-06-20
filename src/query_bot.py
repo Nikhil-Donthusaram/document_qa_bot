@@ -3,14 +3,25 @@ from dotenv import load_dotenv
 import chromadb
 from sentence_transformers import SentenceTransformer
 import google.generativeai as genai
+from index_documents import build_index
 
 load_dotenv()
+
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "..", "db")
 
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-client = chromadb.PersistentClient(path="../db")
-collection = client.get_collection("documents")
+client = chromadb.PersistentClient(path=DB_PATH)
+
+collection = client.get_or_create_collection("documents")
+
+if collection.count() == 0:
+    print("No collection found. Building index...")
+    build_index()
+    collection = client.get_collection("documents")
 
 model = genai.GenerativeModel("models/gemini-2.5-flash")
 
@@ -43,7 +54,7 @@ Content: {doc}
         key = f"{meta['source']}|{meta['page']}"
 
         if key not in seen:
-            sources.append(key)   # 🔥 STRING ONLY (SAFE)
+            sources.append(key)
             seen.add(key)
 
     prompt = f"""
