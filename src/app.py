@@ -2,49 +2,35 @@ import streamlit as st
 from query_bot import ask_question
 
 st.set_page_config(
-    page_title="AI Document Q&A",
-    page_icon="📚",
-    layout="wide"
+    page_title="Document QA Bot",
+    page_icon="📚"
 )
 
-# ---------- HEADER ----------
-st.title("📚 AI Document Q&A Assistant")
-st.caption("Ask questions from your PDFs with page-level citations")
+st.title("📚 Document QA Bot")
 
-# ---------- INPUT ----------
-query = st.text_input("🔎 Enter your question")
+question = st.text_input(
+    "Ask a question from your documents"
+)
 
-# ---------- BUTTON ----------
-if st.button("Ask"):
+if question:
 
-    if query.strip():
+    answer, sources = ask_question(question)
 
-        with st.spinner("Thinking... 🤖"):
+    st.subheader("🤖 Answer")
+    st.write(answer)
 
-            answer, sources = ask_question(query)
+    st.subheader("📌 Sources")
 
-        # ---------- ANSWER ----------
-        st.markdown("## 🤖 Answer")
-        st.success(answer)
-
-        # ---------- SOURCES ----------
-        st.markdown("## 📌 Sources")
-
-        if sources:
-
-            for s in sources:
-                file, page = s.split("|")   # SAFE SPLIT
-
-                st.markdown(f"""
-📄 **{file}**  
-📍 Page: `{page}`
-""")
-
-                st.markdown("---")
-
-        else:
-            st.warning("No sources found")
+    if len(sources) == 0:
+        st.write("No relevant sources found.")
 
     else:
-        st.error("Please enter a question")
+
+        for source in sources:
+
+            file_name, page = source.split("|")
+
+            st.write(f"📄 {file_name}")
+            st.write(f"📍 Page: {page}")
+            st.write("---")
 
